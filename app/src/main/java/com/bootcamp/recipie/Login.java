@@ -3,6 +3,7 @@ package com.bootcamp.recipie;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -16,12 +17,14 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class Login extends AppCompatActivity implements View.OnClickListener {
     private FirebaseAuth myAuth;
     private Button signIn;
     private EditText email, password;
     private TextView signUp;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +44,19 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            Intent moveToDashBoard = new Intent(Login.this, DashBoard.class);
+            startActivity(moveToDashBoard);
+            finish();
+        }
+    }
+
+    @Override
     public void onClick(View v) {
+
         switch (v.getId()) {
             case R.id.login_signin:
                 if (email.getText().toString().isEmpty()) {
@@ -50,13 +65,22 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                 if (password.getText().toString().isEmpty()) {
                     password.setError("is epmty");
                 } else {
+                    progressDialog = new ProgressDialog(Login.this);
+                    progressDialog.setMessage("PLEASE WAIT...");
+                    progressDialog.setTitle("Login Process");
+                    progressDialog.show();
                     String emailS = email.getText().toString();
                     String passwordS = password.getText().toString();
                     myAuth.signInWithEmailAndPassword(emailS, passwordS).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
-                                Toast.makeText(Login.this, "you have logined", Toast.LENGTH_SHORT).show();
+                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                if (user != null) {
+                                    Intent moveToDashBoard = new Intent(Login.this, DashBoard.class);
+                                    startActivity(moveToDashBoard);
+                                    finish();
+                                }
                             }
                         }
                     }).addOnFailureListener(new OnFailureListener() {
@@ -65,7 +89,9 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                             Toast.makeText(Login.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
+                    progressDialog.dismiss();
                 }
+
                 break;
             case R.id.go_to_signUn:
                 Intent intent = new Intent(Login.this, Register.class);
