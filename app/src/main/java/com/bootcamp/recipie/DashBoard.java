@@ -25,6 +25,8 @@ import java.util.ArrayList;
 public class DashBoard extends AppCompatActivity {
     ArrayList<String> notes;
     RecyclerView list;
+    ArrayList<String> ids=new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,11 +70,14 @@ public class DashBoard extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 notes.clear();
+                ids.clear();
                 for (DataSnapshot shot : snapshot.getChildren()) {
+                    String id=shot.getKey();
+                    ids.add(id);
                     String note = shot.getValue(String.class);
                     notes.add(note);
                 }
-                NotesAdapter adapter=new NotesAdapter(DashBoard.this,notes);
+                NotesAdapter adapter=new NotesAdapter(DashBoard.this,notes,ids);
                 list.setAdapter(adapter);
             }
 
